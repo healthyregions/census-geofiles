@@ -20,9 +20,6 @@ load_dotenv()
 CACHE_DIR = Path(".cache")
 LOOKUPS_DIR = Path("lookups")
 
-
-
-
 def load_lookups():
     lookups = {}
     for f in LOOKUPS_DIR.glob("*.json"):
@@ -32,7 +29,7 @@ def load_lookups():
 
     return lookups
 
-## create lookups now so they can be used to generate choices for arg parsing
+## create lookups now so they can be used to validate choices for arg parsing
 LOOKUPS = load_lookups()
 
 YEAR_CHOICES = []
@@ -75,9 +72,10 @@ def download_file(url, filepath, desc=None, progress_bar=False, no_cache: bool =
 
     return filepath
 
-def upload_to_s3(paths: List[Path], prefix: str = None, progress_bar: bool = False):
+def upload_to_s3(paths: List[Path], progress_bar: bool = False):
     s3 = boto3.resource("s3")
     bucket = os.getenv("AWS_BUCKET_NAME")
+    prefix = os.getenv("S3_UPLOAD_PREFIX")
     region = "us-east-2"
 
     for path in paths:
@@ -117,8 +115,7 @@ class S3ProgressPercentage(object):
 
 
 class CensusGeoETL:
-    def __init__(self, year: str, geography: str, scale: str, base_url: str=os.getenv("MIRROR_URL"), verbose=False, destination: Path=None):
-        self.base_url = base_url
+    def __init__(self, year: str, geography: str, scale: str, verbose=False, destination: Path=None):
         self.verbose = verbose
 
         self.year = year
@@ -128,7 +125,6 @@ class CensusGeoETL:
         self.output_dir = destination if destination else Path(CACHE_DIR, self.geography, "processed")
         self.output_dir.mkdir(exist_ok=True, parents=True)
         self.output_files = []
-        self.tippecanoe_path = None
 
     @property
     def name_string(self):
@@ -137,9 +133,6 @@ class CensusGeoETL:
     def log(self, message):
         if self.verbose:
             print(message)
-
-    def set_tippecanoe_path(self, path):
-        self.tippecanoe_path = path
 
     def download_all_files(self, no_cache=False):
         download_dir = Path(
@@ -151,7 +144,8 @@ class CensusGeoETL:
             self.geography
         ]["file_list"]
 
-        download_urls = [f"{self.base_url}{i}" for i in file_urls]
+        url_prefix = os.getenv("MIRROR_URL", "https://www2.census.gov/geo")
+        download_urls = [f"{url_prefix}{i}" for i in file_urls]
         if self.verbose:
             for i in download_urls:
                 self.log(f" -{i}")
@@ -285,11 +279,11 @@ class CensusGeoETL:
 
         return outfile
 
-    def export_to_pmtiles(self, geojson_path, tippecanoe_path):
+    def export_to_pmtiles(self, geojson_path):
 
         outfile_pmtiles = Path(self.output_dir, f"{self.name_string}.pmtiles")
         cmd = [
-            tippecanoe_path,
+            os.getenv("TIPPECANOE_PATH"),
             # "-zg",
             # tried a lot of zoom level directives, and seems like for block group
             # (which I believe is the densest)shp_paths 10 is needed to preserve shapes well enough.
@@ -390,7 +384,7 @@ class CensusGeoETL:
             # need geojson for this, but use existing if it was created already
             if not geojson_path:
                 geojson_path = self.export_to_geojson(df, overwrite=True)
-            self.export_to_pmtiles(geojson_path, self.tippecanoe_path)
+            self.export_to_pmtiles(geojson_path)
 
 # call this function from external modules for full batch processing
 # need to handle how to pass tippecanoe into this environment
@@ -403,15 +397,6 @@ def process_all_sources():
                 client.run_job(formats=['geojson', 'shp'])
 
 @click.command()
-@click.option(
-    "--format",
-    "-f",
-    type=click.Choice(["shp", "geojson", "pmtiles"]),
-    default=["shp", "geojson", "pmtiles"],
-    multiple=True,
-    help="Choose what output formats will be created. Options are `shp` (shapefile), `geojson` "
-    "(GeoJSON), and/or `pmtiles` (PMTiles).",
-)
 @click.option(
     "--geography",
     "-g",
@@ -426,7 +411,7 @@ def process_all_sources():
     type=click.Choice(YEAR_CHOICES),
     default=YEAR_CHOICES,
     multiple=True,
-    help="Specify one or more years."
+    help="Specify one or more years. If left empty, all years will be processed."
 )
 @click.option(
     "--scale",
@@ -434,24 +419,31 @@ def process_all_sources():
     type=click.Choice(SCALE_CHOICES),
     default=SCALE_CHOICES,
     multiple=True,
-    help="Specify one or more scales of geographic boundary file.",
+    help="Specify one or more scales of geographic boundary file. If left empty, all scales will be processed",
 )
 @click.option(
-    "--tippecanoe-path",
-    help="Full path to tippecanoe binary, required for PMTiles generation.",
+    "--format",
+    "-f",
+    type=click.Choice(["shp", "geojson", "pmtiles"]),
+    default=["shp", "geojson", "pmtiles"],
+    multiple=True,
+    help="Choose what output formats will be created. Options are `shp` (shapefile), `geojson` "
+    "(GeoJSON), and/or `pmtiles` (PMTiles). If left empty, all formats will be exported",
+)
+@click.option(
+    "--upload",
+    is_flag=True,
+    default=False,
+    help="Upload the processed files to S3. Bucket name, AWS creds, and prefix will be acquired from environment variables."
 )
 @click.option(
     "--no-cache",
     is_flag=True,
     default=False,
-    help="Force re-retrieval of files from FTP.",
-)
-@click.option(
-    "--upload", is_flag=True, default=False, help="Upload the processed files to S3."
+    help="Force re-retrieval of source files.",
 )
 @click.option(
     "--destination",
-    "-d",
     default=None,
     help="Output directory for export. If not provided, results will be in .cache/{{geography}}/processed.",
     type=click.Path(
@@ -460,46 +452,32 @@ def process_all_sources():
     ),
 )
 @click.option(
-    "--prefix",
-    default="oeps",
-    help="If output is uploaded to S3, use this prefix for the objects.",
-)
-@click.option(
-    "--mirror-url",
-    default=os.getenv("MIRROR_URL"),
-    help="If output is uploaded to S3, use this prefix for the objects.",
-)
-@click.option(
     "--verbose",
     is_flag=True,
     default=False,
     help="Enable verbose output during process.",
 )
 def run_command(
-    format,
-    year,
-    destination,
-    scale,
     geography,
-    tippecanoe_path,
+    year,
+    scale,
+    format,
+    destination,
     upload,
     no_cache,
-    prefix,
-    mirror_url,
     verbose,
 ):
     """This command retrieves geodata from the US Census Bureau's FTP server, merges the files into single,
     nation-wide coverages, and then exports the merged files into various formats. Optionally upload these
     files directly to S3."""
 
-    if "pmtiles" in format and not tippecanoe_path:
-        print("pmtiles output must be accompanied by --tippecanoe-path")
+    if "pmtiles" in format and not os.getenv("TIPPECANOE_PATH"):
+        print("TIPPECANOE_PATH is not set, but is needed to support PMTiles output.")
         exit()
 
     print("year(s):", year)
     print("geography(s):", geography)
     print("scale(s):", scale)
-
 
     ## compile all argument sets into combinations to process
     combos = []
@@ -520,15 +498,12 @@ def run_command(
 
     for y, s, g in combos:
 
-        client = CensusGeoETL(y, g, s, base_url=mirror_url, verbose=verbose, destination=destination)
-        if "pmtiles" in format:
-            client.set_tippecanoe_path(tippecanoe_path)
-
+        client = CensusGeoETL(y, g, s, verbose=verbose, destination=destination)
         client.run_job(formats=format, no_cache=no_cache)
 
         if upload:
             print(f"uploading {len(client.output_files)} files to S3...")
-            upload_to_s3(client.output_files, prefix=prefix, progress_bar=verbose)
+            upload_to_s3(client.output_files, progress_bar=verbose)
 
     print("\ndone.")
 
