@@ -113,6 +113,14 @@ def write_to_uploads_file(year, scale, geography, url):
         writer.writeheader()
         writer.writerows(out_rows)
 
+    with open("available-downloads.md", "w") as o:
+
+        o.write("# Available Downloads\n\n")
+        o.write("|geography|year|scale|url|uploaded on|\n")
+        o.write("|-|-|-|-|-|\n")
+        for r in out_rows:
+            o.write(f"|{r['geography']}|{r['year']}|{r['scale']}|{r['url']}|{r['uploaded']}|\n")
+
 class S3ProgressPercentage(object):
     def __init__(self, filename):
         self._filename = filename
@@ -421,7 +429,7 @@ def process_all_sources():
         for s, z in v.items():
             for g in z.keys():
                 client = CensusGeoETL(y, g, s)
-                client.run_job(formats=['geojson', 'shp'])
+                client.run_job(formats=['geojson', 'shp', 'pmtiles'])
 
 @click.command()
 @click.option(

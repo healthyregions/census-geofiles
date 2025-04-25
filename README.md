@@ -1,8 +1,8 @@
 # census-geofiles
 
-_This is an in-progress port from the [OEPS backend](https://github.com/healthyregions/oeps), some docs still need to be updated..._
+A processing pipeline for creating standardized nation-wide geography files from the US Census Bureau. The command retrieves geodata from the [US Census Bureau's FTP server](https://www2.census.gov/geo) (or a data mirror if specified), merges the files into single, nation-wide coverages, adds a few standard fields, and then exports the merged files into various formats. Optionally upload these files directly to S3.
 
-A processing pipeline for aggregating geography files from the US Census Bureau. The command retrieves geodata from the [US Census Bureau's FTP server](https://www2.census.gov/geo) (or a data mirror if the url is provided), merges the files into single, nation-wide coverages, adds a few standard fields, and then exports the merged files into various formats. Optionally upload these files directly to S3.
+You can access files we have uploaded to our own S3 bucket here: [available downloads](./available-downloads.md).
 
 ## Details
 
@@ -158,7 +158,7 @@ If no arguments are provided, the entire `sources` lookup will be traversed and 
 ### Examples
 
 ```
-python ./census.py -y 2020 -g state -s 500k -f geojson -d .
+python ./census.py -y 2020 -g state -s 500k -f geojson --destination .
 ```
 
 Result: A new GeoJSON file in the local directory, from the 500k Cartographic Boundary shapefile, 2020 vintage.
