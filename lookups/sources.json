@@ -144,6 +144,15 @@
                     "/tiger/GENZ2010/gz_2010_56_150_00_500k.zip",
                     "/tiger/GENZ2010/gz_2010_72_150_00_500k.zip"
                 ]
+            },
+            "zcta": {
+                "herop_id_suffixes": [
+                    "ZCTA5"
+                ],
+                "name_field": "NAME",
+                "file_list": [
+                    "/tiger/GENZ2010/gz_2010_us_860_00_500k.zip"
+                ]
             }
         },
         "tiger": {
@@ -163,6 +172,71 @@
                 "name_field": "NAME10",
                 "file_list": [
                     "/tiger/TIGER2010/COUNTY/2010/tl_2010_us_county10.zip"
+                ]
+            },
+            "zcta":{
+                "herop_id_suffixes": [
+                    "ZCTA5CE10"
+                ],
+                "name_field": "ZCTA5CE10",
+                "file_list": [
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_01_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_02_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_04_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_05_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_06_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_08_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_09_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_10_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_11_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_12_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_13_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_15_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_16_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_17_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_18_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_19_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_20_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_21_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_22_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_23_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_24_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_25_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_26_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_27_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_28_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_29_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_30_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_31_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_32_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_33_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_34_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_35_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_36_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_37_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_38_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_39_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_40_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_41_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_42_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_44_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_45_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_46_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_47_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_48_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_49_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_50_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_51_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_53_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_54_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_55_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_56_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_60_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_66_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_69_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_72_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_78_zcta510.zip",
+                    "/tiger/TIGER2010/ZCTA5/2010/tl_2010_us_zcta510.zip"
                 ]
             }
         }
@@ -604,11 +678,11 @@
             },
             "zcta": {
                 "herop_id_suffixes": [
-                    "ZCTA5CE10"
+                    "ZCTA5CE20"
                 ],
-                "name_field": "ZCTA5CE10",
+                "name_field": "ZCTA5CE20",
                 "file_list": [
-                    "/tiger/GENZ2020/shp/cb_2020_us_zcta510_500k.zip"
+                    "/tiger/GENZ2020/shp/cb_2020_us_zcta520_500k.zip"
                 ]
             }
         }
