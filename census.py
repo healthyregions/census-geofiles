@@ -1,11 +1,13 @@
 import os
+import csv
 import sys
 import json
 import shutil
 import threading
 import subprocess
-from typing import List
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 import geopandas as gpd
@@ -72,19 +74,44 @@ def download_file(url, filepath, desc=None, progress_bar=False, no_cache: bool =
 
     return filepath
 
-def upload_to_s3(paths: List[Path], progress_bar: bool = False):
+def upload_to_s3(path: Path, progress_bar: bool = False):
     s3 = boto3.resource("s3")
     bucket = os.getenv("AWS_BUCKET_NAME")
     prefix = os.getenv("S3_UPLOAD_PREFIX")
     region = "us-east-2"
 
-    for path in paths:
-        key = f"{prefix}/{path.name}" if prefix else path.name
-        cb = S3ProgressPercentage(str(path)) if progress_bar else None
-        s3.Bucket(bucket).upload_file(str(path), key, Callback=cb)
-        if progress_bar:
-            print(f"\n  https://{bucket}.s3.{region}.amazonaws.com/{key}")
+    key = f"{prefix}/{path.name}" if prefix else path.name
+    cb = S3ProgressPercentage(str(path)) if progress_bar else None
+    s3.Bucket(bucket).upload_file(str(path), key, Callback=cb)
 
+    out_url = f"https://{bucket}.s3.{region}.amazonaws.com/{key}"
+    if progress_bar:
+        print("\n  " +out_url)
+    return out_url
+
+def write_to_uploads_file(year, scale, geography, url):
+
+    uploads_list = Path(LOOKUPS_DIR, "uploads-list.csv")
+    out_rows = [{
+        "geography": geography,
+        "year":year,
+        "scale": scale,
+        "url": url,
+        "uploaded": datetime.now(ZoneInfo("US/Central")).strftime("%Y-%m-%d %H:%M:%S")
+    }]
+    if uploads_list.is_file():
+        with open(uploads_list, "r") as o:
+            reader = csv.DictReader(o)
+            for row in reader:
+                if not row["url"] == url:
+                    out_rows.append(row)
+    out_rows.sort(key=lambda x: (x["geography"], x["year"], x["scale"]))
+    with open(uploads_list, "w") as o:
+        writer = csv.DictWriter(o, fieldnames=[
+            "geography", "year", "scale", "url", "uploaded"
+        ])
+        writer.writeheader()
+        writer.writerows(out_rows)
 
 class S3ProgressPercentage(object):
     def __init__(self, filename):
@@ -503,7 +530,13 @@ def run_command(
 
         if upload:
             print(f"uploading {len(client.output_files)} files to S3...")
-            upload_to_s3(client.output_files, progress_bar=verbose)
+            for path in client.output_files:
+                url = upload_to_s3(path, progress_bar=verbose)
+
+                ## only write to the uploads list if this is our default config
+                if os.getenv("AWS_BUCKET_NAME") == "herop-geodata" \
+                    and os.getenv("S3_UPLOAD_PREFIX") == "census":
+                    write_to_uploads_file(y, s, g, url)
 
     print("\ndone.")
 
