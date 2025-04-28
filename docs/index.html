@@ -1,13 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
+<head>
 <link
   rel="stylesheet"
-  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.min.css"
 >
 </head>
 <body>
-<div class="container">
+<header>
+<nav>
+  <ul>
+    <li><strong>HEROP Geodata</strong></li>
+  </ul>
+  <ul>
+    <li><a href="/">Home</a></li>
+    <li><a href="downloads.html">Downloads</a></li>
+  </ul>
+</nav>
+</header>
+<main>
 <h1>census-geofiles</h1>
 <p>A processing pipeline for creating standardized nation-wide geography files from the US Census Bureau. The command retrieves geodata from the <a href="https://www2.census.gov/geo">US Census Bureau's FTP server</a> (or a data mirror if specified), merges the files into single, nation-wide coverages, adds a few standard fields, and then exports the merged files into various formats. Optionally upload these files directly to S3.</p>
 <p><a href="https://healthyregions.github.io/geodata/downloads.html">Direct file access</a> -- You can download or remotely access files we have uploaded to our own S3 bucket.</p>
@@ -223,5 +235,5 @@ all years will be processed.</li>
 </code></pre>
 <p>Result: 500k scale cartographic boundary files for block groups will be merged into nation-wide coverage and exported to PMTiles, one file per available year. Each file will be uploaded to the S3 bucket as described via environment variables.</p>
 
-</div>
+</main>
 </body>

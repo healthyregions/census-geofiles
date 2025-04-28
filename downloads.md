@@ -1,4 +1,4 @@
-# Available Downloads
+# Downloads
 
 |geography|year|scale|url|uploaded on|
 |-|-|-|-|-|

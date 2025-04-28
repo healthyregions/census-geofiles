@@ -1,19 +1,35 @@
 from marko.ext.gfm import gfm
 from pathlib import Path
 
+NAV = """<nav>
+  <ul>
+    <li><strong>HEROP Geodata</strong></li>
+  </ul>
+  <ul>
+    <li><a href="/">Home</a></li>
+    <li><a href="downloads.html">Downloads</a></li>
+  </ul>
+</nav>"""
+
+HEAD = """<head>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.min.css"
+>
+</head>"""
+
 def make_page(content):
     return f"""<!DOCTYPE html>
 <html>
 <head>
-<link
-  rel="stylesheet"
-  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
->
-</head>
+{HEAD}
 <body>
-<div class="container">
+<header>
+{NAV}
+</header>
+<main>
 {content}
-</div>
+</main>
 </body>"""
 
 docs = Path("docs")
