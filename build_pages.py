@@ -25,7 +25,7 @@ with open("README.md", "r") as o:
 with open(Path(docs, "index.html"), "w") as o:
     o.write(make_page(gfm(readme)))
 
-with open("available-downloads.md", "r") as o:
+with open("downloads.md", "r") as o:
     downloads = o.read()
 
 with open(Path(docs, "downloads.html"), "w") as o:

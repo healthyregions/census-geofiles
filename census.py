@@ -113,9 +113,9 @@ def write_to_uploads_file(year, scale, geography, url):
         writer.writeheader()
         writer.writerows(out_rows)
 
-    with open("available-downloads.md", "w") as o:
+    with open("downloads.md", "w") as o:
 
-        o.write("# Available Downloads\n\n")
+        o.write("# Downloads\n\n")
         o.write("|geography|year|scale|url|uploaded on|\n")
         o.write("|-|-|-|-|-|\n")
         for r in out_rows:

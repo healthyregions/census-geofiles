@@ -2,7 +2,7 @@
 
 A processing pipeline for creating standardized nation-wide geography files from the US Census Bureau. The command retrieves geodata from the [US Census Bureau's FTP server](https://www2.census.gov/geo) (or a data mirror if specified), merges the files into single, nation-wide coverages, adds a few standard fields, and then exports the merged files into various formats. Optionally upload these files directly to S3.
 
-You can access files we have uploaded to our own S3 bucket here: [available downloads](./available-downloads.md).
+[Direct file access](https://healthyregions.github.io/geodata/downloads.html) -- You can download or remotely access files we have uploaded to our own S3 bucket.
 
 ## Details
 
