@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+>
+</head>
+<body>
+<div class="container">
+<h1>census-geofiles</h1>
+<p>A processing pipeline for creating standardized nation-wide geography files from the US Census Bureau. The command retrieves geodata from the <a href="https://www2.census.gov/geo">US Census Bureau's FTP server</a> (or a data mirror if specified), merges the files into single, nation-wide coverages, adds a few standard fields, and then exports the merged files into various formats. Optionally upload these files directly to S3.</p>
+<p>You can access files we have uploaded to our own S3 bucket here: <a href="./available-downloads.md">available downloads</a>.</p>
+<h2>Details</h2>
+<p>Given a geography, year, and scale, all matching files in the Census FTP will be processed accordingly:</p>
+<ol>
+<li>Downloaded and unzipped within <code>.cache/</code></li>
+<li>Loaded and merged into a single geopandas dataframe</li>
+<li>
+3 fields added to the data frame:<ul>
+<li><code>LABEL</code>: A human readable label is calculated using each unit's name and proper LSAD</li>
+<li><code>BBOX</code>: The bounding box of each feature is calculated and concatenated into a single text field with this format: &quot;{minx},{miny},{maxx},{maxy}&quot;</li>
+<li><code>HEROP_ID</code>: This is our own unique identifier (very similar to GEOID) to facilitate joins, and you can read more about the rationale behind it below.</li>
+</ul>
+</li>
+<li>The data frame is exported to one or more of the following file formats: Shapefile, GeoJSON, and PMTiles</li>
+</ol>
+<details>
+  <summary><strong>About HEROP_IDs</strong></summary>
+<p>In some of our projects we use what we call a <strong>HEROP_ID</strong> to identify geographic boundaries defined by the US Census Bureau, which is a slight variation on the commonly used standard <strong>GEOID</strong>. Our format is similar to what the American FactFinder used (now data.census.gov). </p>
+<p>A HEROP_ID consists of three parts:</p>
+<ol>
+<li>
+The 3-digit <a href="https://www.census.gov/programs-surveys/geography/technical-documentation/naming-convention/cartographic-boundary-file/carto-boundary-summary-level.html">Summary Level Code</a> for this geography. Common summary level codes are:<ul>
+<li><code>040</code> -- <strong>State</strong></li>
+<li><code>050</code> -- <strong>County</strong></li>
+<li><code>140</code> -- <strong>Census Tract</strong></li>
+<li><code>150</code> -- <strong>Census Block Group</strong></li>
+<li><code>860</code> -- <strong>Zip Code Tabulation Area (ZCTA)</strong></li>
+</ul>
+</li>
+<li>The 2-letter string <code>US</code></li>
+<li>
+The standard <a href="https://www.census.gov/programs-surveys/geography/guidance/geo-identifiers.html">GEOID</a> for the given unit (length depends on unit summary)<ul>
+<li>GEOIDs are, in turn, hierarchical aggregations of FIPS codes</li>
+</ul>
+</li>
+</ol>
+<p>Expanding out the FIPS codes for the five summary levels shown above, the full IDs would look like:</p>
+<table>
+<thead>
+<tr>
+<th>summary level</th>
+<th>format</th>
+<th>length</th>
+<th>example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>State</td>
+<td><code>040US</code> + <code>STATE (2)</code></td>
+<td>7</td>
+<td><code>040US17</code> (Illinois)</td>
+</tr>
+<tr>
+<td>County</td>
+<td><code>050US</code> + <code>STATE (2)</code> + <code>COUNTY (3)</code></td>
+<td>10</td>
+<td><code>050US17019</code> (Champaign County)</td>
+</tr>
+<tr>
+<td>Tract</td>
+<td><code>140US</code> + <code>STATE (2)</code> + <code>COUNTY (3)</code> + <code>TRACT (6)</code></td>
+<td>16</td>
+<td><code>140US17019005900</code></td>
+</tr>
+<tr>
+<td>Block Group</td>
+<td><code>150US</code> + <code>STATE (2)</code> + <code>COUNTY (3)</code> + <code>TRACT (6)</code> + <code>BLOCK GROUP (1)</code></td>
+<td>17</td>
+<td><code>150US170190059002</code></td>
+</tr>
+<tr>
+<td>ZCTA</td>
+<td><code>860US</code> + <code>ZIP CODE (5)</code></td>
+<td>10</td>
+<td><code>860US61801</code></td>
+</tr>
+</tbody></table><p>The advantages of this composite ID are:</p>
+<ol>
+<li>Unique across all geographic areas in the US</li>
+<li>Will always be forced to string formatting</li>
+<li>Easy to programmatically change back into the more standard GEOIDs</li>
+</ol>
+<p><strong>Convert to GEOID (integers)</strong></p>
+<p>The <code>HEROP_ID</code> can be converted back to standard GEOIDs by removing the first 5 characters, or by taking everything after the substring &quot;US&quot;. Here are some examples of what this looks like in different software:</p>
+<ul>
+<li>Excel: <code>REPLACE(A1, 1, 5, &quot;&quot;)</code></li>
+<li>R: <code>geoid &lt;- str_split_i(HEROP_ID, &quot;US&quot;, -1)</code></li>
+<li>Python: <code>geoid = HEROP_ID.split(&quot;US&quot;)[1]</code></li>
+<li>JavaScript: <code>const geoid = HEROP_ID.split(&quot;US&quot;)[1]</code></li>
+</ul>
+</details>
+<details>
+    <summary><strong>About file formats</strong></summary>
+<ul>
+<li><strong>GeoJSON</strong> A simple plain text format that is good for small to medium size datasets and can be used in a wide variety of web and desktop software <a href="https://geojson.org/">learn more</a></li>
+<li><strong>PMTiles</strong> A &quot;cloud-native&quot; vector format that is very fast in the right web mapping environment <a href="https://docs.protomaps.com/pmtiles/">learn more</a></li>
+<li>
+<strong>Shapefiles</strong> Used in scripting and desktop software for performant display and analysis <a href="https://www.geographyrealm.com/what-is-a-shapefile/">learn more</a><ul>
+<li>
+<p><strong>R Example</strong>: <code>sf</code> allows you to directly open remote, zipped shapefiles without downloading them <a href="https://r-spatial.github.io/sf">learn more, <code>read_sf</code> seems not to be documented though (?)</a>:</p>
+<pre><code>library(&#x27;sf&#x27;)
+tracts &lt;- read_sf(&#x27;/vsizip//vsicurl/https://herop-geodata.s3.us-east-2.amazonaws.com/oeps/tract-2018-500k-shp.zip&#x27;)
+</code></pre>
+</li>
+<li>
+<p><strong>Python Example</strong>: <code>geopandas</code> allows you to directly open remote, zipped shapefiles files without downloading them <a href="https://geopandas.org/en/stable/docs/reference/api/geopandas.read_file.html">learn more</a>:</p>
+<pre><code>import geopandas as gpd
+tracts = gpd.read_file(&quot;/vsizip//vsicurl/https://herop-geodata.s3.us-east-2.amazonaws.com/oeps/state-2010-500k-shp.zip&quot;)
+</code></pre>
+</li>
+</ul>
+</li>
+</ul>
+</details>
+<h2>Install</h2>
+<pre><code>git clone https://github.com/healthyregions/census-geofiles
+cd census-geofiles
+python3 -m venv env &amp;&amp; source ./env/bin/activate
+pip install -e .
+</code></pre>
+<p>To create exports in PMTiles format, you must also install <a href="https://github.com/felt/tippecanoe?tab=readme-ov-file#installation">tippecanoe</a> and provide the path to its executable through an environment variable or command line argument (see below)</p>
+<h2>Configuration</h2>
+<p>A few environment variables should be set before running the command.</p>
+<pre><code>cp .env.example .env
+</code></pre>
+<p>Our defaults are provided in the example file along with comments on each variable. These variables can be overwritten at runtime like so:</p>
+<pre><code>AWS_BUCKET_NAME=my-bucket python ./census.py etc...
+</code></pre>
+<h3>Available mirrors</h3>
+<p>By default, the process will download files directly from the US Census FTP, <a href="https://www2.census.gov/geo">https://www2.census.gov/geo</a>. You can direct it to use mirrors of that FTP if needed.</p>
+<table>
+<thead>
+<tr>
+<th>Institution</th>
+<th>Link</th>
+<th><code>MIRROR_URL</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>University of Chicago</td>
+<td><a href="https://datamirror.lib.uchicago.edu/census-tiger">browse</a></td>
+<td><code>https://pub-a835f667d17f4b6691fafec7e9ede33d.r2.dev</code></td>
+</tr>
+</tbody></table><h3>Sources lookup</h3>
+<p>The file <a href="./lookups/sources.json">lookups/sources.json</a> is a master list of all file urls and important field names for each year, geography, and scale. This is necessary because field names and file naming conventions have changed over the years (and I have had trouble running <code>ls</code>-type commands on the Census FTP server so for now this config is all just hard-coded).</p>
+<h2>Usage</h2>
+<pre><code>python ./census.py [OPTIONS]
+
+</code></pre>
+<p>Options:</p>
+<ul>
+<li>
+-g, --geography [place|bg|tract|state|zcta|county]<ul>
+<li>Specify a geography to prepare. If left
+empty, all geographies will be processed.</li>
+</ul>
+</li>
+<li>
+-y, --year [2010|2018|2020]<ul>
+<li>Specify one or more years. If left empty,
+all years will be processed.</li>
+</ul>
+</li>
+<li>
+-s, --scale [500k|tiger]<ul>
+<li>Specify one or more scales of geographic boundary file. If left empty, all scales will be processed</li>
+</ul>
+</li>
+<li>
+-f, --format [shp|geojson|pmtiles]<ul>
+<li>Choose what output formats will be created. Options are <code>shp</code> (shapefile), <code>geojson</code> (GeoJSON), and/or <code>pmtiles</code> (PMTiles). If left empty, all formats will be exported</li>
+</ul>
+</li>
+<li>
+--upload<ul>
+<li>Upload the processed files to S3. Bucket name, AWS creds, and prefix will be acquired from environment variables.</li>
+</ul>
+</li>
+<li>
+--no-cache<ul>
+<li>Force re-retrieval of source files.</li>
+</ul>
+</li>
+<li>
+--destination<ul>
+<li>Output directory for export. If not provided, results will be in .cache/{{geography}}/processed.</li>
+</ul>
+</li>
+<li>
+--verbose<ul>
+<li>Enable verbose output during process.</li>
+</ul>
+</li>
+<li>
+--help<ul>
+<li>Show this message and exit.</li>
+</ul>
+</li>
+</ul>
+<p>The available choices for geography, year, and scale are collected from <code>sources.json</code> which will continue to expand, so the best way to see all options is by running:</p>
+<pre><code>python ./census.py --help
+</code></pre>
+<p>If no arguments are provided, the entire <code>sources</code> lookup will be traversed and an attempt will be made to generate each file format (ESRI Shapefile, GeoJSON, and PMTiles) for every configured year, geography, and scale.</p>
+<h3>Examples</h3>
+<pre><code>python ./census.py -y 2020 -g state -s 500k -f geojson --destination .
+</code></pre>
+<p>Result: A new GeoJSON file in the local directory, from the 500k Cartographic Boundary shapefile, 2020 vintage.</p>
+<pre><code>python ./census.py -g bg -s 500k -f pmtiles --upload
+</code></pre>
+<p>Result: 500k scale cartographic boundary files for block groups will be merged into nation-wide coverage and exported to PMTiles, one file per available year. Each file will be uploaded to the S3 bucket as described via environment variables.</p>
+
+</div>
+</body>

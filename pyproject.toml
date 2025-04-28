@@ -3,7 +3,7 @@ requires = ["setuptools >= 77.0.3"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "census-geofiles"
+name = "herop-geodata"
 version = "0.1.0"
 dependencies = [
   "geopandas",
@@ -12,4 +12,5 @@ dependencies = [
   "requests",
   "tqdm",
   "python-dotenv",
+  "marko",
 ]
