@@ -1,31 +1,32 @@
-from marko.ext.gfm import gfm
+import csv
 from pathlib import Path
 
-NAV = """<nav>
-  <ul>
-    <li><strong>HEROP Geodata</strong></li>
-  </ul>
-  <ul>
-    <li><a href="/">Home</a></li>
-    <li><a href="downloads.html">Downloads</a></li>
-  </ul>
-</nav>"""
+from marko import Markdown
 
-HEAD = """<head>
-<link
-  rel="stylesheet"
-  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.min.css"
->
-</head>"""
+renderer = Markdown(extensions=['toc','gfm'])
 
 def make_page(content):
     return f"""<!DOCTYPE html>
 <html>
 <head>
-{HEAD}
+<head>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.min.css"
+>
+</head>
 <body>
 <header>
-{NAV}
+<nav>
+  <ul>
+    <li><a href="/"><strong>HEROP Geodata</strong></a></li>
+  </ul>
+  <ul>
+    <li><a href="/#specs">Specs</a></li>
+    <li><a href="/#cli">CLI</a></li>
+    <li><a href="/downloads.html">Downloads &rarr;</a></li>
+  </ul>
+</nav>
 </header>
 <main>
 {content}
@@ -39,11 +40,19 @@ with open("README.md", "r") as o:
     readme = o.read()
 
 with open(Path(docs, "index.html"), "w") as o:
-    o.write(make_page(gfm(readme)))
+    o.write(make_page(renderer(readme)))
 
-with open("downloads.md", "r") as o:
-    downloads = o.read()
+downloads_md="""# Downloads
+
+|geography|year|scale|url|uploaded on|
+|-|-|-|-|-|
+"""
+
+with open("uploads-list.csv", "r") as o:
+    reader = csv.DictReader(o)
+    for r in reader:
+        line = f"|{r['geography']}|{r['year']}|{r['scale']}|{r['url']}|{r['uploaded']}|\n"
+        downloads_md += line
 
 with open(Path(docs, "downloads.html"), "w") as o:
-    o.write(make_page(gfm(downloads)))
-
+    o.write(make_page(renderer(downloads_md)))
