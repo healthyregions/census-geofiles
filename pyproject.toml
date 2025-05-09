@@ -12,5 +12,5 @@ dependencies = [
   "requests",
   "tqdm",
   "python-dotenv",
-  "marko",
+  "marko[toc]",
 ]
