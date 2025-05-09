@@ -91,7 +91,7 @@ def upload_to_s3(path: Path, progress_bar: bool = False):
 
 def write_to_uploads_file(year, scale, geography, url):
 
-    uploads_list = Path(LOOKUPS_DIR, "uploads-list.csv")
+    uploads_list = Path("uploads-list.csv")
     out_rows = [{
         "geography": geography,
         "year":year,
@@ -113,13 +113,6 @@ def write_to_uploads_file(year, scale, geography, url):
         writer.writeheader()
         writer.writerows(out_rows)
 
-    with open("downloads.md", "w") as o:
-
-        o.write("# Downloads\n\n")
-        o.write("|geography|year|scale|url|uploaded on|\n")
-        o.write("|-|-|-|-|-|\n")
-        for r in out_rows:
-            o.write(f"|{r['geography']}|{r['year']}|{r['scale']}|{r['url']}|{r['uploaded']}|\n")
 
 class S3ProgressPercentage(object):
     def __init__(self, filename):
